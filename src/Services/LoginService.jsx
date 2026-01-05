@@ -232,6 +232,8 @@ export const getUserCountByRole = async (role) => {
   } catch (error) {
     console.error('Error getting user count by role:', error);
     return 0;
+
+    
   }
 };
 
