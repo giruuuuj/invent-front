@@ -205,3 +205,334 @@ code {
   background: rgba(96, 165, 250, 0.14);
   border-color: var(--app-border);
 }
+
+/* ProductStockEdit Dark Mode Styles */
+.theme-dark .card {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+.theme-dark .card-header {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+.theme-dark .card-body {
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.theme-dark .bg-light {
+  background: var(--app-surface-2) !important;
+  color: var(--app-text);
+}
+
+.theme-dark .bg-gradient-primary {
+  background: linear-gradient(135deg, var(--app-primary), var(--app-primary-600)) !important;
+}
+
+.theme-dark .table-borderless {
+  color: var(--app-text);
+}
+
+.theme-dark .table-borderless td {
+  color: var(--app-text);
+}
+
+.theme-dark .text-muted {
+  color: var(--app-muted) !important;
+}
+
+.theme-dark .text-primary {
+  color: var(--app-primary) !important;
+}
+
+.theme-dark .text-success {
+  color: var(--app-success) !important;
+}
+
+.theme-dark .text-warning {
+  color: var(--app-warning) !important;
+}
+
+.theme-dark .text-danger {
+  color: var(--app-danger) !important;
+}
+
+.theme-dark .badge {
+  color: var(--app-text);
+}
+
+.theme-dark .badge.bg-info {
+  background: var(--app-primary) !important;
+}
+
+.theme-dark .badge.bg-success {
+  background: var(--app-success) !important;
+}
+
+.theme-dark .badge.bg-warning {
+  background: var(--app-warning) !important;
+}
+
+.theme-dark .badge.bg-danger {
+  background: var(--app-danger) !important;
+}
+
+.theme-dark .badge.bg-secondary {
+  background: var(--app-muted) !important;
+}
+
+.theme-dark .badge.bg-light {
+  background: var(--app-surface-2) !important;
+  color: var(--app-text) !important;
+}
+
+.theme-dark .border-end {
+  border-color: var(--app-border) !important;
+}
+
+.theme-dark .border-bottom {
+  border-color: var(--app-border) !important;
+}
+
+.theme-dark .alert-success {
+  background: rgba(22, 163, 74, 0.15) !important;
+  color: var(--app-success) !important;
+  border-color: var(--app-success) !important;
+}
+
+.theme-dark .alert-warning {
+  background: rgba(217, 119, 6, 0.15) !important;
+  color: var(--app-warning) !important;
+  border-color: var(--app-warning) !important;
+}
+
+/* Enhanced Light Mode Support */
+.app-page {
+  min-height: 100vh;
+  background: radial-gradient(1200px 600px at 50% 0%, rgba(37, 99, 235, 0.10) 0%, rgba(37, 99, 235, 0.00) 55%), var(--app-bg);
+  color: var(--app-text);
+  padding: 24px 0;
+}
+
+/* Ensure all components use CSS variables */
+.card {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+}
+
+.card-header {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.card-body {
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.bg-light {
+  background: var(--app-surface-2) !important;
+  color: var(--app-text);
+}
+
+.bg-primary {
+  background: var(--app-primary) !important;
+  color: white !important;
+}
+
+.bg-success {
+  background: var(--app-success) !important;
+  color: white !important;
+}
+
+.bg-warning {
+  background: var(--app-warning) !important;
+  color: white !important;
+}
+
+.bg-danger {
+  background: var(--app-danger) !important;
+  color: white !important;
+}
+
+.bg-secondary {
+  background: var(--app-muted) !important;
+  color: white !important;
+}
+
+.text-muted {
+  color: var(--app-muted) !important;
+}
+
+.text-primary {
+  color: var(--app-primary) !important;
+}
+
+.text-success {
+  color: var(--app-success) !important;
+}
+
+.text-warning {
+  color: var(--app-warning) !important;
+}
+
+.text-danger {
+  color: var(--app-danger) !important;
+}
+
+.table {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+}
+
+.table thead {
+  background: var(--app-surface-2);
+}
+
+.table thead th {
+  border-bottom-color: var(--app-border);
+  color: var(--app-text);
+}
+
+.table td,
+.table th {
+  border-color: var(--app-border);
+  color: var(--app-text);
+}
+
+.form-control {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+.form-control:focus {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-primary);
+}
+
+.form-control::placeholder {
+  color: var(--app-muted);
+}
+
+.btn {
+  border-color: var(--app-border);
+}
+
+.btn-primary {
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+  color: white;
+}
+
+.btn-success {
+  background: var(--app-success);
+  border-color: var(--app-success);
+  color: white;
+}
+
+.btn-warning {
+  background: var(--app-warning);
+  border-color: var(--app-warning);
+  color: white;
+}
+
+.btn-danger {
+  background: var(--app-danger);
+  border-color: var(--app-danger);
+  color: white;
+}
+
+.btn-secondary {
+  background: var(--app-muted);
+  border-color: var(--app-muted);
+  color: white;
+}
+
+.btn-outline-primary {
+  border-color: var(--app-primary);
+  color: var(--app-primary);
+}
+
+.btn-outline-secondary {
+  border-color: var(--app-muted);
+  color: var(--app-muted);
+}
+
+.alert {
+  background: var(--app-surface);
+  color: var(--app-text);
+  border-color: var(--app-border);
+}
+
+.alert-success {
+  background: rgba(22, 163, 74, 0.15);
+  color: var(--app-success);
+  border-color: var(--app-success);
+}
+
+.alert-warning {
+  background: rgba(217, 119, 6, 0.15);
+  color: var(--app-warning);
+  border-color: var(--app-warning);
+}
+
+.alert-danger {
+  background: rgba(220, 38, 38, 0.15);
+  color: var(--app-danger);
+  border-color: var(--app-danger);
+}
+
+.alert-info {
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--app-primary);
+  border-color: var(--app-primary);
+}
+
+.badge {
+  color: white;
+}
+
+.badge.bg-info {
+  background: var(--app-primary);
+}
+
+.badge.bg-success {
+  background: var(--app-success);
+}
+
+.badge.bg-warning {
+  background: var(--app-warning);
+}
+
+.badge.bg-danger {
+  background: var(--app-danger);
+}
+
+.badge.bg-secondary {
+  background: var(--app-muted);
+}
+
+.badge.bg-light {
+  background: var(--app-surface-2);
+  color: var(--app-text);
+}
+
+/* Dark mode overrides */
+.theme-dark .btn-outline-primary:hover {
+  background: var(--app-primary);
+  color: white;
+}
+
+.theme-dark .btn-outline-secondary:hover {
+  background: var(--app-muted);
+  color: white;
+}

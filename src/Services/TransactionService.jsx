@@ -39,7 +39,7 @@ export const transactionIdGenerator = () => {
 }
 
 export const findTransactionsByType = (type) => {
-            return axios.get(`${TRANS_URL}/type/${type}`, {
+            return axios.get(`http://localhost:9191/invent/trans/type/${type}`, {
                         withCredentials: true
             });
 }
@@ -47,6 +47,12 @@ export const findTransactionsByType = (type) => {
 
 export const getDemandByProduct = (id) => {
             return axios.get(`${ANA_URL}/${id}`, {
+                        withCredentials: true
+            });
+}
+
+export const getProductWiseTotalSale = () => {
+            return axios.get(ANA_URL, {
                         withCredentials: true
             });
 }

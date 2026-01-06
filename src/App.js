@@ -12,6 +12,7 @@ import ProductEntry from './Components/ProductComponents/ProductEntry';
 import ProductReport from './Components/ProductComponents/ProductReport';
 import ProductPriceEdit from './Components/ProductComponents/ProductPriceEdit';
 import ProductStockEdit from './Components/ProductComponents/ProductStockEdit';
+import TransactionReport from './Components/ProductComponents/TransactionReport';
 
 import Dummy from './Components/ProductComponents/Dummy';
 import ThemeToggle from './Components/Common/ThemeToggle';
@@ -46,6 +47,12 @@ function App() {
 
                     <Route path="/product-report" element={<ProductReport />} />
                     <Route path="/product-list" element={<ProductReport />} />
+                
+                    <Route path="/in-transaction" element={<TransactionReport />} />
+                    <Route path="/out-transaction" element={<TransactionReport />} />
+                    <Route path="/transaction-report/:type" element={<TransactionReport />} />
+                    <Route path="/trans-repo/IN" element={<TransactionReport />} />
+                    <Route path="/trans-repo/OUT" element={<TransactionReport />} />
                 
                     <Route path="/usermanagement" element={<UserManagement />} />
                     <Route path="/adminmenu" element={<AdminMenu />} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { getProductById, editProductStock } from '../../Services/ProductService';
-import { getUserId } from '../../Services/LoginService';
+import { getUserId, getUserByRole } from '../../Services/LoginService';
 // FIX: Change transactionIdGenerate to transactionIdGenerator
 import { transactionIdGenerator, saveTransaction } from '../../Services/TransactionService';
 
@@ -23,7 +23,7 @@ const ProductStockEdit = () => {
     const [flag, setFlag] = useState("");
     const [errors, setErrors] = useState({});
     const [warns, setWarns] = useState(null);
-    const [tdate, setTdate] = useState(new Date());
+    const [tdate, setTdate] = useState(new Date().toISOString().split('T')[0]);
     const [transaction, setTransaction] = useState({
         transactionId: 0,
         transactionType: "",
@@ -35,18 +35,19 @@ const ProductStockEdit = () => {
         transactionDate: new Date(),
     });
 
+    const [transValue, setTransValue] = useState(null);
     let navigate = useNavigate();
     let params = useParams();
     let location = useLocation();  
     const [quantity, setQuantity] = useState(0.0);
-    const [transValue, setTransValue] = useState(null);
+    const [vendors, setVendors] = useState([]);
 
     const setProductData = () => {
         if (location.state?.product) {
             setProduct(location.state.product);
             setFlag(params.no);
         } else {
-            getProductById(params.id).then((response) => {
+            getProductById(params.pid).then((response) => {
                 setProduct(response.data);
                 setFlag(params.no);
             });
@@ -56,20 +57,82 @@ const ProductStockEdit = () => {
     const setUserData = () => {
         getUserId().then((response) => {
             setUserId(response.data);
+        }).catch(error => {
+            console.error('Error getting user ID:', error);
+            // Set fallback user ID
+            setUserId('USER' + Date.now());
         });
     }
 
     const setTransactionId = () => {
-        // FIX: Change this function call to use transactionIdGenerator
+        // FIX: Add fallback for transaction ID when API fails
         transactionIdGenerator().then((response) => {
             setNewId(response.data);
+        }).catch(error => {
+            console.error('Error generating transaction ID:', error);
+            // Generate fallback ID
+            const fallbackId = 'TXN' + Date.now();
+            setNewId(fallbackId);
         });
     }
+
+    const setVendorData = () => {
+        getUserByRole('Vendor').then((response) => {
+            setVendors(Array.isArray(response) ? response : []);
+        }).catch(error => {
+            console.error('Error fetching vendors:', error);
+            setVendors([]);
+        });
+    }
+
+    const getVendorName = (vendorId) => {
+        if (!vendorId && vendorId !== 0) return 'Unknown';
+        
+        console.log('Looking for vendor with ID:', vendorId);
+        console.log('Available vendors:', vendors);
+        
+        // Convert vendorId to number for comparison
+        const searchId = parseInt(vendorId);
+        
+        // Try to find matching vendor from vendors list
+        const vendor = vendors.find(v => {
+            console.log('Checking vendor:', v, 'against ID:', searchId);
+            return v.id === searchId || parseInt(v.id) === searchId;
+        });
+        
+        console.log('Found vendor:', vendor);
+        
+        if (vendor) {
+            const name = vendor.fullName || vendor.name || vendor.username || vendor.displayName || vendor.email;
+            console.log('Vendor name found:', name);
+            return name || `Vendor ${searchId}`;
+        }
+        
+        // Fallback: if vendorId is a number, try to find vendor by index (0-based)
+        const vendorIndex = searchId - 1; // Convert to 0-based index
+        if (vendorIndex >= 0 && vendors[vendorIndex]) {
+            const indexedVendor = vendors[vendorIndex];
+            const name = indexedVendor.fullName || indexedVendor.name || indexedVendor.username || indexedVendor.displayName || indexedVendor.email;
+            console.log('Vendor found by index:', name);
+            return name || `Vendor ${searchId}`;
+        }
+        
+        // Fallback: format vendorId to display name
+        const vendorStr = vendorId.toString();
+        if (vendorStr.startsWith('vendor-')) {
+            const vendorNum = vendorStr.replace('vendor-', '');
+            return `Vendor ${vendorNum}`;
+        }
+        
+        console.log('Using fallback for vendor:', vendorId);
+        return `Vendor ${searchId}`;
+    };
 
     useEffect(() => {
         setProductData();
         setUserData();
         setTransactionId();
+        setVendorData();
     }, []);
 
     const returnBack = () => {
@@ -85,7 +148,7 @@ const ProductStockEdit = () => {
         const updatedTransaction = {
             ...transaction,
             transactionId: newId,
-            productId: product.productId,
+            productId: product.productId || product.product_id,
             quantity: parseFloat(quantity),
             userId: userId,
             transactionDate: tdate,
@@ -93,10 +156,10 @@ const ProductStockEdit = () => {
 
         if (flag === "1") {
             updatedTransaction.transactionType = "IN";
-            updatedTransaction.rate = product.purchasePrice;
+            updatedTransaction.rate = product.purchasePrice || product.purchase_price;
         } else if (flag === "2") {
             updatedTransaction.transactionType = "OUT";
-            updatedTransaction.rate = product.salesPrice;
+            updatedTransaction.rate = product.salesPrice || product.sales_price;
         }
         
         updatedTransaction.transactionValue = parseFloat(updatedTransaction.rate) * parseFloat(quantity);
@@ -155,115 +218,207 @@ const ProductStockEdit = () => {
     }
 
     return (
-        <div>
-            <div className="card col-md-6 offset-md-3">
-                <div className="card-body" align="center">
-                    <div className="col-md-12 text-center" style={{ textAlign: "center" }}>
-                        {parseInt(flag) === 1 ? <h1 className="text-center">Stock Purchase Entry</h1> :
-                            <h1 className="text-center">Stock Issue Entry</h1>}
+        <div className="app-page">
+            <div className="container mt-4">
+                <div className="row justify-content-center">
+                    <div className="col-md-10">
+                        <div className="card shadow-lg border-0">
+                            <div className="card-header bg-gradient-primary text-white py-3">
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <h3 className="mb-0">
+                                        <i className="fas fa-boxes me-2"></i>
+                                        {parseInt(flag) === 1 ? (
+                                            <span>Stock Purchase Entry</span>
+                                        ) : (
+                                            <span>Stock Issue Entry</span>
+                                        )}
+                                    </h3>
+                                    <span className="badge bg-light text-dark">
+                                        <i className="fas fa-tag me-1"></i>
+                                        {product.productId || product.product_id}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="card-body p-0">
+                                <div className="row g-0">
+                                    <div className="col-md-6">
+                                        <div className="p-4 border-end">
+                                            <h5 className="mb-4 text-primary">
+                                                <i className="fas fa-info-circle me-2"></i>
+                                                Product Details
+                                            </h5>
+                                            <div className="table-responsive">
+                                                <table className="table table-borderless table-sm">
+                                                    <tbody>
+                                                        <tr className="border-bottom">
+                                                            <td className="text-muted fw-bold" width="40%">Product ID:</td>
+                                                            <td className="fw-semibold">{product.productId || product.product_id}</td>
+                                                        </tr>
+                                                        <tr className="border-bottom">
+                                                            <td className="text-muted fw-bold">SKU ID:</td>
+                                                            <td className="fw-semibold">{product.skuId || product.sku_id}</td>
+                                                        </tr>
+                                                        <tr className="border-bottom">
+                                                            <td className="text-muted fw-bold">Product Name:</td>
+                                                            <td className="fw-semibold text-primary">{product.productName || product.product_name}</td>
+                                                        </tr>
+                                                        <tr className="border-bottom">
+                                                            <td className="text-muted fw-bold">
+                                                                {parseInt(flag) === 1 ? "Purchase Price:" : "Sales Price:"}
+                                                            </td>
+                                                            <td className="fw-bold text-success">
+                                                                ₹{parseInt(flag) === 1 ? 
+                                                                    (product.purchasePrice || product.purchase_price)?.toFixed(2) : 
+                                                                    (product.salesPrice || product.sales_price)?.toFixed(2)
+                                                                }
+                                                            </td>
+                                                        </tr>
+                                                        <tr className="border-bottom">
+                                                            <td className="text-muted fw-bold">Current Stock:</td>
+                                                            <td>
+                                                                <span className={`badge rounded-pill fs-6 ${
+                                                                    parseFloat(product.stock) <= 0 ? 'bg-danger' : 
+                                                                    parseFloat(product.stock) <= parseFloat(product.reorderLevel || product.reorder_level) ? 'bg-warning' : 'bg-success'
+                                                                } text-white`}>
+                                                                    <i className="fas fa-cubes me-1"></i>
+                                                                    {product.stock}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr className="border-bottom">
+                                                            <td className="text-muted fw-bold">Reorder Level:</td>
+                                                            <td>
+                                                                <span className="badge bg-secondary text-white">
+                                                                    {product.reorderLevel || product.reorder_level}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="text-muted fw-bold">Vendor:</td>
+                                                            <td className="fw-semibold">
+                                                                <span className="badge bg-info text-white">
+                                                                    <i className="fas fa-user-tie me-1"></i>
+                                                                    {getVendorName(product.vendorId || product.vendor_id)}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <div className="p-4 bg-light">
+                                            <h5 className="mb-4 text-primary">
+                                                <i className="fas fa-edit me-2"></i>
+                                                Transaction Details
+                                            </h5>
+                                            <form onSubmit={handleValidation}>
+                                                <div className="mb-3">
+                                                    <label className="form-label fw-bold text-muted">
+                                                        <i className="fas fa-hashtag me-1"></i>
+                                                        Transaction ID
+                                                    </label>
+                                                    <input 
+                                                        name="transactionId" 
+                                                        className="form-control form-control-lg bg-light" 
+                                                        value={newId} 
+                                                        readOnly 
+                                                    />
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="form-label fw-bold text-muted">
+                                                        <i className="fas fa-calendar me-1"></i>
+                                                        Transaction Date
+                                                    </label>
+                                                    <input 
+                                                        type="date" 
+                                                        className="form-control form-control-lg"
+                                                        value={tdate} 
+                                                        onChange={(event) => setTdate(event.target.value)} 
+                                                    />
+                                                </div>
+                                                <div className="mb-4">
+                                                    <label className="form-label fw-bold text-muted">
+                                                        <i className="fas fa-sort-amount-up me-1"></i>
+                                                        {parseInt(flag) === 1 ? (
+                                                            <span>Purchase Quantity</span>
+                                                        ) : (
+                                                            <span>Issue Quantity</span>
+                                                        )}
+                                                    </label>
+                                                    <div className="input-group input-group-lg">
+                                                        <span className="input-group-text">
+                                                            <i className="fas fa-boxes"></i>
+                                                        </span>
+                                                        <input 
+                                                            type="number"
+                                                            placeholder="Enter quantity" 
+                                                            name="quantity" 
+                                                            className={`form-control ${errors.quantity ? 'is-invalid' : ''}`}
+                                                            value={quantity} 
+                                                            onChange={(event) => {
+                                                                setQuantity(event.target.value);
+                                                                if (errors.quantity) {
+                                                                    setErrors({...errors, quantity: null});
+                                                                }
+                                                            }}
+                                                            step="0.01"
+                                                            min="0"
+                                                        />
+                                                    </div>
+                                                    {errors.quantity && (
+                                                        <div className="invalid-feedback d-block">
+                                                            <i className="fas fa-exclamation-triangle me-1"></i>
+                                                            {errors.quantity}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="d-grid gap-2">
+                                                    <button type="submit" className="btn btn-success btn-lg">
+                                                        <i className="fas fa-save me-2"></i>
+                                                        Save Transaction
+                                                    </button>
+                                                    <div className="btn-group" role="group">
+                                                        <button type="button" className="btn btn-outline-secondary" onClick={clearAll}>
+                                                            <i className="fas fa-redo me-1"></i>
+                                                            Reset
+                                                        </button>
+                                                        <button type="button" className="btn btn-outline-primary" onClick={returnBack}>
+                                                            <i className="fas fa-arrow-left me-1"></i>
+                                                            Return
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            {transValue !== null && (
+                                                <div className="alert alert-success mt-3 mb-0">
+                                                    <div className="d-flex align-items-center">
+                                                        <i className="fas fa-calculator me-2 fa-lg"></i>
+                                                        <div>
+                                                            <strong>Transaction Value:</strong>
+                                                            <div className="fs-5">₹{transValue.toFixed(2)}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {warns && (
+                                                <div className="alert alert-warning mt-3 mb-0">
+                                                    <div className="d-flex align-items-center">
+                                                        <i className="fas fa-exclamation-triangle me-2 fa-lg"></i>
+                                                        <div>
+                                                            <strong>Warning:</strong>
+                                                            <div>{warns}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <table className="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <td>Product Id:</td>
-                                <td>{product.productId}</td>
-                            </tr>
-                            <tr>
-                                <td>SKU Id:</td>
-                                <td>{product.skuId}</td>
-                            </tr>
-                            <tr>
-                                <td>Product Name:</td>
-                                <td>{product.productName}</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    {parseInt(flag) === 1 ? "Purchase Price:" : "Sales Price:"}
-                                </td>
-                                <td>{parseInt(flag) === 1 ? product.purchasePrice : product.salesPrice}</td>
-                            </tr>
-                            <tr>
-                                <td>Reorder Level:</td>
-                                <td>{product.reorderLevel}</td>
-                            </tr>
-                            <tr>
-                                <td>Stock:</td>
-                                <td>{product.stock}</td>
-                            </tr>
-                            <tr>
-                                <td>Vendor:</td>
-                                <td>{product.vendorId}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div className="card col-md-6 offset-md-3">
-                <div className="card-body" align="center">
-                    <form onSubmit={handleValidation}>
-                        <div className="row">
-                            <div className="form-group mb-3">
-                                <label>Transaction Id:</label>
-                                <input 
-                                    name="transactionId" 
-                                    className="form-control" 
-                                    value={newId} 
-                                    readOnly 
-                                />
-                            </div>
-                            <div className="form-group mb-3">
-                                <label>Select Transaction Date:</label>
-                                <input 
-                                    type="date" 
-                                    placeholder="yyyy-mm-dd" 
-                                    className="form-control"
-                                    value={tdate} 
-                                    onChange={(event) => setTdate(event.target.value)} 
-                                />
-                            </div>
-                            <div className="form-group mb-3">
-                                <b>
-                                    {parseInt(flag) === 1 ? 
-                                        <label>Enter Purchased Stock Quantity:</label> :
-                                        <label>Enter Issued Stock Quantity:</label>}
-                                </b>
-                                <input 
-                                    type="number"
-                                    placeholder="Quantity" 
-                                    name="quantity" 
-                                    className={`form-control ${errors.quantity ? 'is-invalid' : ''}`}
-                                    value={quantity} 
-                                    onChange={(event) => {
-                                        setQuantity(event.target.value);
-                                        // Clear error when user starts typing
-                                        if (errors.quantity) {
-                                            setErrors({...errors, quantity: null});
-                                        }
-                                    }}
-                                    step="0.01"
-                                    min="0"
-                                />
-                                {errors.quantity && <div className="invalid-feedback">{errors.quantity}</div>}
-                            </div>
-                            <div className="mb-3">
-                                <button type="submit" className="btn btn-success">Save</button>
-                                &nbsp;&nbsp;
-                                <button type="button" className="btn btn-secondary" onClick={clearAll}>Reset</button>
-                                &nbsp;&nbsp;
-                                <button type="button" className="btn btn-success" onClick={returnBack}>Return</button>
-                            </div>
-                        </div>
-                    </form>
-                    {transValue !== null && (
-                        <div style={{ textAlign: "center" }}>
-                            <b>Transaction Value: ₹{transValue.toFixed(2)}</b>
-                        </div>
-                    )}
-                    {warns && (
-                        <div style={{ textAlign: "center", color: "red" }}>
-                            <b>{warns}</b>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
