@@ -60,6 +60,8 @@ function App() {
                     <Route path="/usermanagement" element={<UserManagement />} />
                     <Route path="/adminmenu" element={<AdminMenu />} />
                     <Route path='/dummy' element={<Dummy />} />
+                    <Route path='/user-view' element={<UserView />} />
+
 
 
                 </Routes>
