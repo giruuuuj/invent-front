@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { getProductById, editProductStock } from '../../Services/ProductService';
 import { getUserId, getUserByRole } from '../../Services/LoginService';
-// FIX: Change transactionIdGenerate to transactionIdGenerator
-import { transactionIdGenerator, saveTransaction } from '../../Services/TransactionService';
+import { transactionIdGenerator, saveTransaction, editProductStock, getProductById } from '../../Services/TransactionService';
 
 const ProductStockEdit = () => {    
     const [product, setProduct] = useState({
@@ -18,14 +16,14 @@ const ProductStockEdit = () => {
         status: true
     });
 
-    const [newId, setNewId] = useState(0);
+    const [newId, setNewId] = useState(100001);
     const [userId, setUserId] = useState('');
     const [flag, setFlag] = useState("");
     const [errors, setErrors] = useState({});
     const [warns, setWarns] = useState(null);
     const [tdate, setTdate] = useState(new Date().toISOString().split('T')[0]);
     const [transaction, setTransaction] = useState({
-        transactionId: 0,
+        transactionId: 100001,
         transactionType: "",
         productId: "",
         rate: 0.0,
@@ -36,104 +34,117 @@ const ProductStockEdit = () => {
     });
 
     const [transValue, setTransValue] = useState(null);
-    let navigate = useNavigate();
-    let params = useParams();
-    let location = useLocation();  
+    const [lastTransactionId, setLastTransactionId] = useState(100000);
     const [quantity, setQuantity] = useState(0.0);
     const [vendors, setVendors] = useState([]);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
+    const [isLoading, setIsLoading] = useState(true);
 
-    const setProductData = () => {
-        if (location.state?.product) {
-            setProduct(location.state.product);
-            setFlag(params.no);
-        } else {
-            getProductById(params.pid).then((response) => {
+    let navigate = useNavigate();
+    let params = useParams();
+    let location = useLocation();
+
+    const setProductData = async () => {
+        try {
+            if (location.state?.product) {
+                setProduct(location.state.product);
+                setFlag(params.no);
+            } else if (params.pid) {
+                const response = await getProductById(params.pid);
                 setProduct(response.data);
                 setFlag(params.no);
-            });
+            } else {
+                setSaveMessage({ type: 'error', text: 'No product ID provided' });
+            }
+        } catch (error) {
+            console.error('Error fetching product:', error);
+            setSaveMessage({ type: 'error', text: 'Failed to load product data' });
+        } finally {
+            setIsLoading(false);
         }
     }
 
-    const setUserData = () => {
-        getUserId().then((response) => {
+    const setUserData = async () => {
+        try {
+            const response = await getUserId();
             setUserId(response.data);
-        }).catch(error => {
+        } catch (error) {
             console.error('Error getting user ID:', error);
             // Set fallback user ID
             setUserId('USER' + Date.now());
-        });
+        }
     }
 
-    const setTransactionId = () => {
-        // FIX: Add fallback for transaction ID when API fails
-        transactionIdGenerator().then((response) => {
-            setNewId(response.data);
-        }).catch(error => {
+    const setTransactionId = async () => {
+        try {
+            const response = await transactionIdGenerator();
+            const generatedId = response.data;
+            if (typeof generatedId === 'number') {
+                const nextId = generatedId >= 100001 ? generatedId : lastTransactionId + 1;
+                setNewId(nextId);
+                setLastTransactionId(nextId);
+            } else {
+                setNewId(generatedId);
+            }
+        } catch (error) {
             console.error('Error generating transaction ID:', error);
-            // Generate fallback ID
-            const fallbackId = 'TXN' + Date.now();
-            setNewId(fallbackId);
-        });
+            // Generate sequential ID starting from 100001
+            const nextId = lastTransactionId + 1;
+            setNewId(nextId);
+            setLastTransactionId(nextId);
+        }
     }
 
-    const setVendorData = () => {
-        getUserByRole('Vendor').then((response) => {
+    const setVendorData = async () => {
+        try {
+            const response = await getUserByRole('Vendor');
+            console.log('Vendor data fetched:', response);
             setVendors(Array.isArray(response) ? response : []);
-        }).catch(error => {
+        } catch (error) {
             console.error('Error fetching vendors:', error);
             setVendors([]);
-        });
+        }
     }
 
     const getVendorName = (vendorId) => {
-        if (!vendorId && vendorId !== 0) return 'Unknown';
+        if (!vendorId && vendorId !== 0) return 'Unknown Vendor';
         
-        console.log('Looking for vendor with ID:', vendorId);
-        console.log('Available vendors:', vendors);
-        
-        // Convert vendorId to number for comparison
-        const searchId = parseInt(vendorId);
-        
-        // Try to find matching vendor from vendors list
-        const vendor = vendors.find(v => {
-            console.log('Checking vendor:', v, 'against ID:', searchId);
-            return v.id === searchId || parseInt(v.id) === searchId;
-        });
-        
-        console.log('Found vendor:', vendor);
-        
-        if (vendor) {
-            const name = vendor.fullName || vendor.name || vendor.username || vendor.displayName || vendor.email;
-            console.log('Vendor name found:', name);
-            return name || `Vendor ${searchId}`;
+        try {
+            const searchId = typeof vendorId === 'string' ? parseInt(vendorId) : vendorId;
+            
+            // Try to find vendor in vendors list
+            const vendor = vendors.find(v => {
+                const vid = typeof v.id === 'string' ? parseInt(v.id) : v.id;
+                return vid === searchId;
+            });
+            
+            if (vendor) {
+                return vendor.fullName || vendor.name || vendor.username || 
+                       vendor.displayName || vendor.email || `Vendor ${searchId}`;
+            }
+            
+            return `Vendor ${searchId}`;
+        } catch (error) {
+            console.error('Error getting vendor name:', error);
+            return `Vendor ${vendorId}`;
         }
-        
-        // Fallback: if vendorId is a number, try to find vendor by index (0-based)
-        const vendorIndex = searchId - 1; // Convert to 0-based index
-        if (vendorIndex >= 0 && vendors[vendorIndex]) {
-            const indexedVendor = vendors[vendorIndex];
-            const name = indexedVendor.fullName || indexedVendor.name || indexedVendor.username || indexedVendor.displayName || indexedVendor.email;
-            console.log('Vendor found by index:', name);
-            return name || `Vendor ${searchId}`;
-        }
-        
-        // Fallback: format vendorId to display name
-        const vendorStr = vendorId.toString();
-        if (vendorStr.startsWith('vendor-')) {
-            const vendorNum = vendorStr.replace('vendor-', '');
-            return `Vendor ${vendorNum}`;
-        }
-        
-        console.log('Using fallback for vendor:', vendorId);
-        return `Vendor ${searchId}`;
     };
 
     useEffect(() => {
-        setProductData();
-        setUserData();
-        setTransactionId();
-        setVendorData();
-    }, []);
+        const initializeData = async () => {
+            setIsLoading(true);
+            await Promise.all([
+                setProductData(),
+                setUserData(),
+                setTransactionId(),
+                setVendorData()
+            ]);
+            setIsLoading(false);
+        };
+        
+        initializeData();
+    }, [params.pid, params.no, location.state]);
 
     const returnBack = () => {
         navigate('/orders');
@@ -141,55 +152,120 @@ const ProductStockEdit = () => {
 
     const clearAll = () => {
         setQuantity(0.0);
+        setTransValue(null);
+        setWarns(null);
+        setErrors({});
+        setSaveMessage({ type: '', text: '' });
     }
 
-    const stockEdit = (e) => {
+    const stockEdit = async (e) => {
         e.preventDefault();
-        const updatedTransaction = {
-            ...transaction,
-            transactionId: newId,
-            productId: product.productId || product.product_id,
-            quantity: parseFloat(quantity),
-            userId: userId,
-            transactionDate: tdate,
-        };
+        setIsSaving(true);
+        setSaveMessage({ type: '', text: '' });
 
-        if (flag === "1") {
-            updatedTransaction.transactionType = "IN";
-            updatedTransaction.rate = product.purchasePrice || product.purchase_price;
-        } else if (flag === "2") {
-            updatedTransaction.transactionType = "OUT";
-            updatedTransaction.rate = product.salesPrice || product.sales_price;
-        }
-        
-        updatedTransaction.transactionValue = parseFloat(updatedTransaction.rate) * parseFloat(quantity);
-        
-        setTransValue(updatedTransaction.transactionValue);
-        setTransaction(updatedTransaction);
+        try {
+            // Get product ID - handle both naming conventions
+            const productId = product.productId || product.product_id;
+            const productName = product.productName || product.product_name;
+            const skuId = product.skuId || product.sku_id;
+            const vendorId = product.vendorId || product.vendor_id;
+            
+            // Calculate rate based on transaction type
+            const rate = flag === "1" 
+                ? parseFloat(product.purchasePrice || product.purchase_price || 0)
+                : parseFloat(product.salesPrice || product.sales_price || 0);
+            
+            const transactionValue = rate * parseFloat(quantity);
+            
+            // Prepare transaction data for backend - ensure all fields are properly set
+            const transactionData = {
+                transactionId: parseInt(newId),
+                transactionType: flag === "1" ? "IN" : "OUT",
+                productId: String(productId),
+                rate: parseFloat(rate.toFixed(2)),
+                quantity: parseFloat(quantity),
+                transactionValue: parseFloat(transactionValue.toFixed(2)),
+                userId: String(vendorId || userId || 'default-user-id'), // Use vendor ID first
+                transactionDate: tdate + 'T00:00:00'
+            };
 
-        if (flag === "2") {
-            let balance = product.stock - parseFloat(quantity);
-            if (balance <= product.reorderLevel) {
-                setWarns("Warning: Stock reached the reorder level!...");
-            } else {
-                setWarns(null);
+            console.log("📤 Sending Transaction Data:", transactionData);
+            
+            // Save transaction
+            const transactionResponse = await saveTransaction(transactionData);
+            console.log("✅ Transaction saved:", transactionResponse.data);
+            
+            // Prepare stock update data
+            const stockUpdateData = {
+                product: product,
+                qty: parseFloat(quantity),
+                flag: flag === "1" ? true : false
+            };
+
+            console.log("📤 Updating stock for product:", productId, "with data:", stockUpdateData);
+            
+            // Update product stock
+            const stockResponse = await editProductStock(productId, stockUpdateData);
+            console.log("✅ Stock updated:", stockResponse.data);
+
+            // Update transaction value display
+            setTransValue(transactionValue);
+            setTransaction(transactionData);
+
+            // Show success message
+            setSaveMessage({ 
+                type: 'success', 
+                text: `Stock ${flag === "1" ? "purchase" : "issue"} saved successfully! 
+                       Transaction ID: ${newId}, Value: ₹${transactionValue.toFixed(2)}` 
+            });
+
+            // Check reorder level warning for stock OUT
+            if (flag === "2") {
+                const newStock = parseFloat(product.stock) - parseFloat(quantity);
+                if (newStock <= parseFloat(product.reorderLevel || product.reorder_level)) {
+                    setWarns(`Warning: Stock reached reorder level! New stock: ${newStock}`);
+                }
             }
-        }
-        
-        saveTransaction(updatedTransaction).then((response) => {
-            console.log("Transaction saved:", response);
-            // returnBack(); // Optional: navigate back after saving
-        }).catch(error => {
-            console.error("Error saving transaction:", error);
-        });
 
-        editProductStock(product, quantity, flag).then((response) => {
-            console.log("Stock updated:", response);
-            // Optionally clear form or show success message
-            // clearAll();
-        }).catch(error => {
-            console.error("Error updating stock:", error);
-        });
+            // Clear form and generate new ID after 2 seconds
+            setTimeout(() => {
+                clearAll();
+                const nextId = parseInt(newId) + 1;
+                setNewId(nextId);
+            }, 2000);
+
+        } catch (error) {
+            console.error("❌ Error saving data:", error);
+            
+            let errorMessage = 'Failed to save transaction. Please try again.';
+            
+            if (error.response) {
+                console.error("Status:", error.response.status);
+                console.error("Response data:", error.response.data);
+                
+                if (error.response.data) {
+                    if (typeof error.response.data === 'string') {
+                        errorMessage = error.response.data;
+                    } else if (error.response.data.message) {
+                        errorMessage = error.response.data.message;
+                    } else if (error.response.data.error) {
+                        errorMessage = error.response.data.error;
+                    }
+                }
+            } else if (error.request) {
+                console.error("No response received. Is backend running?");
+                errorMessage = 'Cannot connect to server. Please check if backend is running.';
+            } else {
+                console.error("Error message:", error.message);
+            }
+            
+            setSaveMessage({ 
+                type: 'error', 
+                text: errorMessage 
+            });
+        } finally {
+            setIsSaving(false);
+        }
     }
 
     const handleValidation = (e) => {
@@ -197,24 +273,70 @@ const ProductStockEdit = () => {
         let tempErrors = {};
         let isValid = true;
 
+        // Validate quantity
         if (!quantity || quantity.toString().trim() === "") {
             tempErrors.quantity = "Transaction Quantity is required";
             isValid = false;
+        } else if (isNaN(parseFloat(quantity))) {
+            tempErrors.quantity = "Quantity must be a valid number";
+            isValid = false;
         } else if (parseFloat(quantity) <= 0) {
-            tempErrors.quantity = "Transaction Quantity cannot be zero or negative";
+            tempErrors.quantity = "Transaction Quantity must be greater than zero";
             isValid = false;
         }
 
+        // Validate for stock issue (OUT)
         if (flag === "2") {
-            if (parseFloat(quantity) > parseFloat(product.stock)) {
-                tempErrors.quantity = "Issued Quantity cannot be greater than available stock";
+            const currentStock = parseFloat(product.stock) || 0;
+            const issueQuantity = parseFloat(quantity) || 0;
+            
+            if (issueQuantity > currentStock) {
+                tempErrors.quantity = `Issued Quantity (${issueQuantity}) cannot be greater than available stock (${currentStock})`;
                 isValid = false;
             }
         }
+
+        // Validate date
+        if (!tdate) {
+            tempErrors.date = "Transaction date is required";
+            isValid = false;
+        } else {
+            const selectedDate = new Date(tdate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate > today) {
+                tempErrors.date = "Transaction date cannot be in the future";
+                isValid = false;
+            }
+        }
+
         setErrors(tempErrors);
+        
         if (isValid) {
             stockEdit(e);
         }
+    }
+
+    if (isLoading) {
+        return (
+            <div className="app-page">
+                <div className="container mt-5">
+                    <div className="row justify-content-center">
+                        <div className="col-md-10">
+                            <div className="card shadow-lg">
+                                <div className="card-body text-center py-5">
+                                    <div className="spinner-border text-primary mb-3" role="status">
+                                        <span className="visually-hidden">Loading...</span>
+                                    </div>
+                                    <h4 className="text-primary">Loading product data...</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -267,10 +389,10 @@ const ProductStockEdit = () => {
                                                                 {parseInt(flag) === 1 ? "Purchase Price:" : "Sales Price:"}
                                                             </td>
                                                             <td className="fw-bold text-success">
-                                                                ₹{parseInt(flag) === 1 ? 
-                                                                    (product.purchasePrice || product.purchase_price)?.toFixed(2) : 
-                                                                    (product.salesPrice || product.sales_price)?.toFixed(2)
-                                                                }
+                                                                ₹{(flag === "1" 
+                                                                    ? (product.purchasePrice || product.purchase_price || 0)
+                                                                    : (product.salesPrice || product.sales_price || 0)
+                                                                ).toFixed(2)}
                                                             </td>
                                                         </tr>
                                                         <tr className="border-bottom">
@@ -281,7 +403,7 @@ const ProductStockEdit = () => {
                                                                     parseFloat(product.stock) <= parseFloat(product.reorderLevel || product.reorder_level) ? 'bg-warning' : 'bg-success'
                                                                 } text-white`}>
                                                                     <i className="fas fa-cubes me-1"></i>
-                                                                    {product.stock}
+                                                                    {parseFloat(product.stock || 0).toFixed(2)}
                                                                 </span>
                                                             </td>
                                                         </tr>
@@ -289,7 +411,7 @@ const ProductStockEdit = () => {
                                                             <td className="text-muted fw-bold">Reorder Level:</td>
                                                             <td>
                                                                 <span className="badge bg-secondary text-white">
-                                                                    {product.reorderLevel || product.reorder_level}
+                                                                    {parseFloat(product.reorderLevel || product.reorder_level || 0).toFixed(2)}
                                                                 </span>
                                                             </td>
                                                         </tr>
@@ -333,10 +455,22 @@ const ProductStockEdit = () => {
                                                     </label>
                                                     <input 
                                                         type="date" 
-                                                        className="form-control form-control-lg"
+                                                        className={`form-control form-control-lg ${errors.date ? 'is-invalid' : ''}`}
                                                         value={tdate} 
-                                                        onChange={(event) => setTdate(event.target.value)} 
+                                                        onChange={(event) => {
+                                                            setTdate(event.target.value);
+                                                            if (errors.date) {
+                                                                setErrors({...errors, date: null});
+                                                            }
+                                                        }}
+                                                        max={new Date().toISOString().split('T')[0]}
                                                     />
+                                                    {errors.date && (
+                                                        <div className="invalid-feedback d-block">
+                                                            <i className="fas fa-exclamation-triangle me-1"></i>
+                                                            {errors.date}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="mb-4">
                                                     <label className="form-label fw-bold text-muted">
@@ -364,7 +498,8 @@ const ProductStockEdit = () => {
                                                                 }
                                                             }}
                                                             step="0.01"
-                                                            min="0"
+                                                            min="0.01"
+                                                            disabled={isSaving}
                                                         />
                                                     </div>
                                                     {errors.quantity && (
@@ -373,20 +508,54 @@ const ProductStockEdit = () => {
                                                             {errors.quantity}
                                                         </div>
                                                     )}
+                                                    <small className="text-muted">
+                                                        Enter quantity in units. Current stock: {parseFloat(product.stock || 0).toFixed(2)}
+                                                    </small>
                                                 </div>
+                                                
+                                                {saveMessage.text && (
+                                                    <div className={`alert alert-${saveMessage.type} mb-3`}>
+                                                        <i className={`fas fa-${saveMessage.type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2`}></i>
+                                                        {saveMessage.text}
+                                                    </div>
+                                                )}
+
                                                 <div className="d-grid gap-2">
-                                                    <button type="submit" className="btn btn-success btn-lg">
-                                                        <i className="fas fa-save me-2"></i>
-                                                        Save Transaction
+                                                    <button 
+                                                        type="submit" 
+                                                        className="btn btn-success btn-lg"
+                                                        disabled={isSaving || isLoading}
+                                                    >
+                                                        {isSaving ? (
+                                                            <>
+                                                                <i className="fas fa-spinner fa-spin me-2"></i>
+                                                                Saving...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <i className="fas fa-save me-2"></i>
+                                                                Save Transaction
+                                                            </>
+                                                        )}
                                                     </button>
                                                     <div className="btn-group" role="group">
-                                                        <button type="button" className="btn btn-outline-secondary" onClick={clearAll}>
+                                                        <button 
+                                                            type="button" 
+                                                            className="btn btn-outline-secondary" 
+                                                            onClick={clearAll}
+                                                            disabled={isSaving}
+                                                        >
                                                             <i className="fas fa-redo me-1"></i>
                                                             Reset
                                                         </button>
-                                                        <button type="button" className="btn btn-outline-primary" onClick={returnBack}>
+                                                        <button 
+                                                            type="button" 
+                                                            className="btn btn-outline-primary" 
+                                                            onClick={returnBack}
+                                                            disabled={isSaving}
+                                                        >
                                                             <i className="fas fa-arrow-left me-1"></i>
-                                                            Return
+                                                            Return to Orders
                                                         </button>
                                                     </div>
                                                 </div>

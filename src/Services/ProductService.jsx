@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:9191/invent';
 const PROD_URL = 'http://localhost:9191/invent/product';
-
+const STOCK_URL = 'http://localhost:9191/invent/stock';
 
 // Create simple axios instance for product operations (no authentication)
 const api = axios.create({
@@ -95,8 +95,9 @@ export const ProductService = {
   
   // Stock operations
   updateStock: (id, stockData) => {
-    const backendData = toBackendFormat(stockData);
-    return api.put(`/product/${stockData.qty}/${stockData.flag}`, backendData.product);
+    return axios.put(`${STOCK_URL}/${id}`, stockData, {
+      withCredentials: true
+    });
   },
   
   // Price operations
@@ -138,21 +139,11 @@ export const displayAllProducts = async () => {
 
 export const editProductPrice = (product) => ProductService.updatePrice(product.product_id, {
   purchase_price: product.purchase_price,
-  sales_price: product.sales_price,
-  stock: product.stock,
-  reorder_level: product.reorder_level
+  sales_price: product.sales_price
 });
 
-
 export const editProductStock = (id, stockData) => {
-  return axios.put(PROD_URL, stockData.product,{
-    withCredentials: true
-  })
-
-
-
-
-   
-  
+  return ProductService.updateStock(id, stockData);
 }
+
 export const deleteAProductById = (id) => ProductService.delete(id);

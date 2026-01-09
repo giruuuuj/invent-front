@@ -4,8 +4,9 @@ import RegisterUser from './Components/LoginComponents/RegisterUser';
 import AdminMenu from './Components/LoginComponents/AdminMenu';
 import ManagerMenu from './Components/LoginComponents/ManagerMenu';
 import VendorMenu from './Components/LoginComponents/VendorMenu';
+
 import UserManagement from './Components/LoginComponents/UserManagement';
-import SKUEntry from './Components/SKUComponents/SKUEntry'; // Check this path
+import SKUEntry from './Components/SKUComponents/SKUEntry'; 
 import SKUReport from './Components/SKUComponents/SKUReport';
 import SKUEdit from './Components/SKUComponents/SKUEdit';
 import ProductEntry from './Components/ProductComponents/ProductEntry';
@@ -47,6 +48,8 @@ function App() {
 
                     <Route path="/product-report" element={<ProductReport />} />
                     <Route path="/product-list" element={<ProductReport />} />
+                    
+                    
                 
                     <Route path="/in-transaction" element={<TransactionReport />} />
                     <Route path="/out-transaction" element={<TransactionReport />} />

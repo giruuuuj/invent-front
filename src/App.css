@@ -2,6 +2,15 @@
   text-align: left;
 }
 
+body {
+  background-image: url('./Desgin/login.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

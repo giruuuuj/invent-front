@@ -185,7 +185,7 @@ const ProductEntry = () => {
                     <option value="">Select SKU</option>
                     {skuList && Array.isArray(skuList) && skuList.map((sku, index) => (
                       <option key={sku.skuId || index} value={sku.skuId || sku}>
-                        {sku.skuDescription || sku}
+                        {sku.skuId || sku}
                       </option>
                     ))}
                   </select>

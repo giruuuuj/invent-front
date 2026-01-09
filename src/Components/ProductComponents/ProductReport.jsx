@@ -137,7 +137,7 @@ const ProductReport = () => {
   return (
     <div className="app-page">
       <div className="container mt-4">
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex justify-content-between align-items-center mb-4 position-sticky top-0 bg-white z-1" style={{paddingTop: '1rem', paddingBottom: '1rem'}}>
           <h2>Product Report</h2>
           <button 
             className="btn btn-primary"
@@ -153,73 +153,75 @@ const ProductReport = () => {
           </div>
         ) : (
           <>
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Product Id</th>
-                  <th>SKU</th>
-                  <th>Product Name</th>
-                  <th>Vendor Name</th>
-                  <th>Purchase Price</th>
-                  <th>Sales Price</th>
-                  <th>Stock</th>
-                  <th>Reorder Level</th>
-                  <th>Stock Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map(product => (
-                  <tr key={product.productId || product.product_id}>
-                    <td>{product.productId || product.product_id}</td>
-                    <td>{product.skuId || product.sku_id}</td>
-                    <td>{product.productName || product.product_name}</td>
-                    <td>{getVendorName(product.vendorId || product.vendor_id)}</td>
-                    <td>{product.purchasePrice?.toFixed(2) || product.purchase_price?.toFixed(2)}</td>
-                    <td>{product.salesPrice?.toFixed(2) || product.sales_price?.toFixed(2)}</td>
-                    <td>{product.stock}</td>
-                    <td>{product.reorderLevel || product.reorder_level}</td>
-                    <td className={product.stockStatusInfo?.className || 'text-warning'}>
-                      {product.stockStatusInfo?.status || 'Unknown'}
-                    </td>
-                    <td>
-                      <div className="btn-group" role="group">
-                        <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => handleIssue(product.productId || product.product_id)}
-                          title="Issue Product"
-                          disabled={!product.stockStatusInfo?.canIssue}
-                        >
-                          Issue
-                        </button>
-
-                        <button
-                          className="btn btn-sm btn-success"
-                          onClick={() => handlePurchase(product.productId || product.product_id)}
-                          title="Purchase Product"
-                        >
-                          Purchase
-                        </button>
-                        <button
-                          className="btn btn-sm btn-warning"
-                          onClick={() => handleEdit(product.productId || product.product_id)}
-                          title="Edit Product"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(product.productId || product.product_id)}
-                          title="Delete Product"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+            <div className="table-responsive" style={{maxHeight: '70vh', overflowY: 'auto'}}>
+              <table className="table table-striped table-hover">
+                <thead className="sticky-top bg-light">
+                  <tr>
+                    <th>Product Id</th>
+                    <th>SKU</th>
+                    <th>Product Name</th>
+                    <th>Vendor Name</th>
+                    <th>Purchase Price</th>
+                    <th>Sales Price</th>
+                    <th>Stock</th>
+                    <th>Reorder Level</th>
+                    <th>Stock Status</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {products.map(product => (
+                    <tr key={product.productId || product.product_id}>
+                      <td>{product.productId || product.product_id}</td>
+                      <td>{product.skuId || product.sku_id}</td>
+                      <td>{product.productName || product.product_name}</td>
+                      <td>{getVendorName(product.vendorId || product.vendor_id)}</td>
+                      <td>{product.purchasePrice?.toFixed(2) || product.purchase_price?.toFixed(2)}</td>
+                      <td>{product.salesPrice?.toFixed(2) || product.sales_price?.toFixed(2)}</td>
+                      <td>{product.stock}</td>
+                      <td>{product.reorderLevel || product.reorder_level}</td>
+                      <td className={product.stockStatusInfo?.className || 'text-warning'}>
+                        {product.stockStatusInfo?.status || 'Unknown'}
+                      </td>
+                      <td>
+                        <div className="btn-group" role="group">
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleIssue(product.productId || product.product_id)}
+                            title="Issue Product"
+                            disabled={!product.stockStatusInfo?.canIssue}
+                          >
+                            Issue
+                          </button>
+
+                          <button
+                            className="btn btn-sm btn-success"
+                            onClick={() => handlePurchase(product.productId || product.product_id)}
+                            title="Purchase Product"
+                          >
+                            Purchase
+                          </button>
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() => handleEdit(product.productId || product.product_id)}
+                            title="Edit Product"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => handleDelete(product.productId || product.product_id)}
+                            title="Delete Product"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <div className="mt-3">
               <button 
                 className="btn btn-danger"

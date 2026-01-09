@@ -27,7 +27,7 @@ const VendorMenu = () => {
                             </div>
                             <div className="card-body">
                                 <div className="row">
-                                    <div className="col-md-3 mb-3">
+                                    <div className="col-md-4 mb-3">
                                         <div className="card menu-item-card">
                                             <div className="card-body text-center">
                                                 <i className="fas fa-list-alt fa-3x mb-3 text-primary"></i>
@@ -36,7 +36,6 @@ const VendorMenu = () => {
                                                 <button 
                                                     className="btn btn-primary btn-block"
                                                     onClick={() => navigate('/skureport')}
-                                                    //navigateTOSKUReport
                                                 >
                                                     View Products
                                                 </button>
@@ -44,24 +43,7 @@ const VendorMenu = () => {
                                         </div>
                                     </div>
                                     
-                                    <div className="col-md-3 mb-3">
-                                        <div className="card menu-item-card">
-                                            <div className="card-body text-center">
-                                                <i className="fas fa-box-open fa-3x mb-3 text-success"></i>
-                                                <h5>Edit Pricing</h5>
-                                                <p className="text-muted">Manage your product prices</p>
-                                                <button 
-                                                    className="btn btn-success btn-block"
-                                                    onClick={() => navigate('/update-product/:id')}
-                                                    //navigateToMyProducts
-                                                >
-                                                    My Products
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="col-md-3 mb-3">
+                                    <div className="col-md-4 mb-3">
                                         <div className="card menu-item-card">
                                             <div className="card-body text-center">
                                                 <i className="fas fa-shopping-cart fa-3x mb-3 text-warning"></i>
@@ -70,7 +52,6 @@ const VendorMenu = () => {
                                                 <button 
                                                     className="btn btn-warning btn-block"
                                                     onClick={() => navigate('/orders')}
-                                                    //navigateToOrders
                                                 >
                                                     View Orders
                                                 </button>
@@ -78,16 +59,15 @@ const VendorMenu = () => {
                                         </div>
                                     </div>
                                     
-                                    <div className="col-md-3 mb-3">
+                                    <div className="col-md-4 mb-3">
                                         <div className="card menu-item-card">
                                             <div className="card-body text-center">
-                                                <i className="fas fa-user-circle fa-3x mb-3 text-info"></i>
-                                                <h5>Add Product</h5>
-                                                <p className="text-muted">Add new products</p>
+                                                <i className="fas fa-user-edit fa-3x mb-3 text-info"></i>
+                                                <h5>Vendor Profile</h5>
+                                                <p className="text-muted">Update vendor details</p>
                                                 <button 
                                                     className="btn btn-info btn-block"
-                                                    onClick={() => navigate('/product-entry')}
-                                                    //navigateToProfile
+                                                    onClick={() => navigate('/vendor-profile-update')}
                                                 >
                                                     Edit Profile
                                                 </button>
