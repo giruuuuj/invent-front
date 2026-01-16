@@ -14,9 +14,11 @@ import ProductReport from './Components/ProductComponents/ProductReport';
 import ProductPriceEdit from './Components/ProductComponents/ProductPriceEdit';
 import ProductStockEdit from './Components/ProductComponents/ProductStockEdit';
 import TransactionReport from './Components/ProductComponents/TransactionReport';
+import ProductPieAnalysis from './Components/ChartComponent/ProductPieAnalysis';
 
 import Dummy from './Components/ProductComponents/Dummy';
 import ThemeToggle from './Components/Common/ThemeToggle';
+import UserView from './Components/LoginComponents/UserView';
 
 // Check this path
 import './App.css';
@@ -48,6 +50,7 @@ function App() {
 
                     <Route path="/product-report" element={<ProductReport />} />
                     <Route path="/product-list" element={<ProductReport />} />
+                    <Route path="/product-pie-analysis" element={<ProductPieAnalysis />} />
                     
                     
                 
@@ -60,7 +63,7 @@ function App() {
                     <Route path="/usermanagement" element={<UserManagement />} />
                     <Route path="/adminmenu" element={<AdminMenu />} />
                     <Route path='/dummy' element={<Dummy />} />
-                    <Route path='/user-view' element={<UserView />} />
+                    <Route path='/userview' element={<UserView />} />
 
 
 

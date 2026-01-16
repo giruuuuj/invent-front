@@ -125,6 +125,20 @@ const AdminMenu = () => {
                                 <i className="fas fa-chart-line me-2"></i>
                                 Product Analysis
                               </button>
+                              <button 
+                                className="btn btn-outline-success"
+                                onClick={() => navigate('/product-pie-analysis')}
+                              >
+                                <i className="fas fa-chart-bar me-2"></i>
+                                ALL Product Analysis
+                              </button>
+                              <button 
+                                className="btn btn-outline-success"
+                                onClick={() => navigate('/single-product-demand-analysis')}
+                              >
+                                <i className="fas fa-chart-pie me-2"></i>
+                                Single Product Demand Analysis
+                              </button>
                             </div>
                           </div>
                         )}

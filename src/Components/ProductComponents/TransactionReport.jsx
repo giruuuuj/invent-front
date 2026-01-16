@@ -1,8 +1,7 @@
-import React from 'react';
-import {useEffect, useState} from 'react';
-import {useNavigate ,useParams} from 'react-router-dom';
-import {findTransactionsByType} from '../../Services/TransactionService';
-import {getRole, getUserByRole} from '../../Services/LoginService';          
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { findTransactionsByType } from '../../Services/TransactionService';
+import { getRole, getUserByRole } from '../../Services/LoginService';          
 
 
 const TransactionReport = () => {
@@ -10,83 +9,96 @@ const TransactionReport = () => {
     const[filteredTransactions, setFilteredTransactions] = useState([]);
     const[loading, setLoading] = useState(false);
     const[error, setError] = useState(null);
-    const[vendors, setVendors] = useState([]);
+    const[admins, setAdmins] = useState([]);
     let navigate = useNavigate();
     const param = useParams();
     const [flag , setFlag] = useState(false);
     const [role , setRole] = useState("");
 
     // Filter states
-    const [vendorFilter, setVendorFilter] = useState('');
+    const [adminFilter, setAdminFilter] = useState('');
     const [rateFilter, setRateFilter] = useState('');
     const [dateFilter, setDateFilter] = useState('');
 
-    const setVendorData = async () => {
+    const setAdminData = async () => {
         try {
-            const response = await getUserByRole('Vendor');
-            console.log('Vendor data fetched:', response);
-            setVendors(Array.isArray(response) ? response : []);
+            const response = await getUserByRole('Admin');
+            console.log('Admin data fetched:', response);
+            setAdmins(Array.isArray(response) ? response : []);
         } catch (error) {
-            console.error('Error fetching vendors:', error);
-            setVendors([]);
+            console.error('Error fetching admins:', error);
+            setAdmins([]);
         }
     }
 
-    const getVendorName = (userId) => {
+    const getAdminName = (userId) => {
         if (!userId && userId !== 0) return 'Unknown User';
         
-        console.log('Looking for vendor with userId:', userId, 'type:', typeof userId);
-        console.log('Available vendors:', vendors);
+        console.log('Looking for admin with userId:', userId, 'type:', typeof userId);
+        console.log('Available admins:', admins);
+        
+        // If no admins loaded yet, return a consistent fallback
+        if (!admins || admins.length === 0) {
+            return `Admin ${userId}`;
+        }
         
         try {
             // Try multiple matching strategies
-            let vendor = null;
+            let admin = null;
             
-            // 1. Try exact string match (for usernames like 'java', 'rohit')
-            vendor = vendors.find(v => 
-                v.username === userId || 
-                v.fullName === userId || 
-                v.name === userId ||
-                v.email === userId
+            // 1. Try exact string match (for usernames like 'admin', 'manager')
+            admin = admins.find(a => 
+                a.username === userId || 
+                a.fullName === userId || 
+                a.name === userId ||
+                a.email === userId
             );
             
-            if (vendor) {
-                console.log('Found vendor by string match:', vendor);
-                const name = vendor.fullName || vendor.name || vendor.username || 
-                           vendor.displayName || vendor.email;
-                return name;
+            if (admin) {
+                console.log('Found admin by string match:', admin);
+                const name = admin.fullName || admin.name || admin.username || 
+                           admin.displayName || admin.email;
+                return name || `Admin ${userId}`;
             }
             
             // 2. Try numeric ID match
             const searchId = typeof userId === 'string' ? parseInt(userId) : userId;
             if (!isNaN(searchId)) {
-                vendor = vendors.find(v => {
-                    const vid = typeof v.id === 'string' ? parseInt(v.id) : v.id;
-                    return vid === searchId;
+                admin = admins.find(a => {
+                    const aid = typeof a.id === 'string' ? parseInt(a.id) : a.id;
+                    return aid === searchId;
                 });
                 
-                if (vendor) {
-                    console.log('Found vendor by ID match:', vendor);
-                    const name = vendor.fullName || vendor.name || vendor.username || 
-                               vendor.displayName || vendor.email;
-                    return name;
+                if (admin) {
+                    console.log('Found admin by ID match:', admin);
+                    const name = admin.fullName || admin.name || admin.username || 
+                               admin.displayName || admin.email;
+                    return name || `Admin ${userId}`;
                 }
             }
             
-            // 3. Try index-based match (if userId is 1, try vendors[0])
-            const vendorIndex = parseInt(userId) - 1;
-            if (!isNaN(vendorIndex) && vendorIndex >= 0 && vendors[vendorIndex]) {
-                const indexedVendor = vendors[vendorIndex];
-                console.log('Found vendor by index:', indexedVendor);
-                const name = indexedVendor.fullName || indexedVendor.name || indexedVendor.username;
-                return name || `Vendor ${userId}`;
+            // 3. Try index-based match (if userId is 1, try admins[0])
+            const adminIndex = parseInt(userId) - 1;
+            if (!isNaN(adminIndex) && adminIndex >= 0 && admins[adminIndex]) {
+                const indexedAdmin = admins[adminIndex];
+                console.log('Found admin by index:', indexedAdmin);
+                const name = indexedAdmin.fullName || indexedAdmin.name || indexedAdmin.username;
+                return name || `Admin ${userId}`;
             }
             
-            console.log('No vendor found for userId:', userId);
-            return `Vendor ${userId}`;
+            // 4. Fallback: If we have at least one admin, return the first one for consistency
+            if (admins.length > 0) {
+                const firstAdmin = admins[0];
+                const name = firstAdmin.fullName || firstAdmin.name || firstAdmin.username || 'Admin';
+                console.log('Using first admin as fallback:', name);
+                return name;
+            }
+            
+            console.log('No admin found for userId:', userId);
+            return `Admin ${userId}`;
         } catch (error) {
-            console.error('Error getting vendor name:', error);
-            return `Vendor ${userId}`;
+            console.error('Error getting admin name:', error);
+            return `Admin ${userId}`;
         }
     };
 
@@ -127,11 +139,11 @@ const TransactionReport = () => {
     const filterTransactions = () => {
         let filtered = transactions;
         
-        // Filter by vendor
-        if (vendorFilter) {
+        // Filter by admin
+        if (adminFilter) {
             filtered = filtered.filter(transaction => {
-                const vendorName = getVendorName(transaction.userId);
-                return vendorName && vendorName.toLowerCase().includes(vendorFilter.toLowerCase());
+                const adminName = getAdminName(transaction.userId);
+                return adminName && adminName.toLowerCase().includes(adminFilter.toLowerCase());
             });
         }
         
@@ -156,13 +168,13 @@ const TransactionReport = () => {
 
     useEffect(() => {
         filterTransactions();
-    }, [transactions, vendorFilter, rateFilter, dateFilter]);
+    }, [transactions, adminFilter, rateFilter, dateFilter]);
 
     useEffect(() => {
         getRole().then(response => {
             setRole(response.data);
         });
-        setVendorData();
+        setAdminData();
         setTransactionsData();
     }, [param.pid, param.type, window.location.pathname]); // Add window.location.pathname as dependency
 
@@ -182,7 +194,7 @@ const TransactionReport = () => {
                     transaction.rate,
                     transaction.quantity,
                     transaction.transactionValue,
-                    `"${getVendorName(transaction.userId)}"`, // Wrap in quotes to handle commas in names
+                    `"${getAdminName(transaction.userId)}"`, // Wrap in quotes to handle commas in names
                     formattedDate
                 ].join(',');
             })
@@ -269,17 +281,17 @@ const TransactionReport = () => {
                 <div className="card-body">
                     <div className="row">
                         <div className="col-md-4 mb-3">
-                            <label htmlFor="vendorFilter" className="form-label">Vendor Name</label>
+                            <label htmlFor="adminFilter" className="form-label">Admin Name</label>
                             <select
                                 className="form-control"
-                                id="vendorFilter"
-                                value={vendorFilter}
-                                onChange={(e) => setVendorFilter(e.target.value)}
+                                id="adminFilter"
+                                value={adminFilter}
+                                onChange={(e) => setAdminFilter(e.target.value)}
                             >
-                                <option value="">All Vendors</option>
-                                {vendors.map(vendor => (
-                                    <option key={vendor.id || vendor.username} value={vendor.fullName || vendor.name || vendor.username}>
-                                        {vendor.fullName || vendor.name || vendor.username}
+                                <option value="">All Admins</option>
+                                {admins.map(admin => (
+                                    <option key={admin.id || admin.username} value={admin.fullName || admin.name || admin.username}>
+                                        {admin.fullName || admin.name || admin.username}
                                     </option>
                                 ))}
                             </select>
@@ -311,7 +323,7 @@ const TransactionReport = () => {
                             <button 
                                 className="btn btn-secondary btn-sm me-2" 
                                 onClick={() => {
-                                    setVendorFilter('');
+                                    setAdminFilter('');
                                     setRateFilter('');
                                     setDateFilter('');
                                 }}
@@ -355,7 +367,7 @@ const TransactionReport = () => {
                                     <td>{transaction.rate}</td>
                                     <td>{transaction.quantity}</td>
                                     <td>{transaction.transactionValue}</td>
-                                    <td>{getVendorName(transaction.userId)}</td>
+                                    <td>{getAdminName(transaction.userId)}</td>
                                     <td>{new Date(transaction.transactionDate).toLocaleDateString('en-GB')}</td>
                                 </tr>
                             ))

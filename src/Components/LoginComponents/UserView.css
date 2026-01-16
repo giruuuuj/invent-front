@@ -1,0 +1,195 @@
+/* UserView.css - Enhanced styling for user profile page */
+
+.user-view-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.user-profile-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    padding: 0;
+    max-width: 500px;
+    width: 100%;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-profile-card h2 {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    padding: 1.5rem;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.user-details {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.detail-row:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: translateX(5px);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #667eea;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-label::before {
+    content: '';
+    width: 20px;
+    height: 2px;
+    background: #667eea;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.detail-value {
+    color: #333;
+    font-size: 1rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+.role-badge {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.action-buttons {
+    padding: 1.5rem 2rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0 0 20px 20px 0;
+}
+
+.return-button {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+}
+
+.return-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(102, 126, 234, 0.6);
+}
+
+.return-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+}
+
+/* Login prompt styling */
+.login-prompt {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+}
+
+.login-prompt p {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.login-prompt button {
+    background: linear-gradient(45deg, #28a745, #667eea);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 0.5rem;
+}
+
+.login-prompt button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(40, 167, 69, 0.4);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .user-profile-card {
+        margin: 1rem;
+        max-width: 95%;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .detail-label {
+        margin-bottom: 0.3rem;
+    }
+    
+    .action-buttons {
+        padding: 1rem;
+    }
+}

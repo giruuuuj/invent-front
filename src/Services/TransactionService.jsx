@@ -63,7 +63,9 @@ export const getDemandByProduct = (id) => {
 }
 
 export const getProductWiseTotalSale = () => {
-    return axios.get(ANA_URL, {
+    // Try to use existing product endpoint to get product data
+    // Since analytics endpoint doesn't exist, we'll use product data as fallback
+    return axios.get(`${PRODUCT_URL}`, {
         withCredentials: true
     });
 }
